@@ -1,0 +1,105 @@
+bundle:
+  name: soc_multi_signal
+  def_version: 1
+  lane_domains:
+    entity_id: { max_per_partition: 48 }
+    host_id:   { max_per_partition: 32 }
+# Partition workloads on higher-cardinality identifiers (for example tenant+region) to keep residual per-partition lane counts inside the declared bounds.
+workflow:
+  name: soc_multi_signal
+  phases:
+    - name: ingest_security_events
+      type: source.kafka
+      options:
+        connector: security_events_kafka
+        decode: schema_registry
+        lane_bitmap_from: payload.alert_lanes
+
+    - name: aggregate_short_window
+      type: aggregate.promql
+      options:
+        window: 60s
+        queries:
+          correlated_auth_failures:
+            expression: sum by (entity_id)(
+              increase(
+                auth_failure_events_total{outcome="DENIED"}[60s]
+              )
+            )
+          malware_alert_burst:
+            expression: sum by (host_id)(
+              increase(
+                malware_detected_total{severity=~"HIGH|CRITICAL"}[60s]
+              )
+            )
+          lateral_movement_signals:
+            expression: count by (host_id)(
+              count_over_time(
+                lateral_movement_flags{stage="suspected"}[60s]
+              )
+            )
+
+    - name: aggregate_baseline_window
+      type: aggregate.promql
+      options:
+        window: 1h
+        queries:
+          auth_failure_baseline:
+            expression: avg by (entity_id)(
+              avg_over_time(
+                auth_failure_events_total{outcome="DENIED"}[1h]
+              )
+            )
+          malware_alert_baseline:
+            expression: avg by (host_id)(
+              avg_over_time(
+                malware_detected_total{severity=~"HIGH|CRITICAL"}[1h]
+              )
+            )
+
+    - name: evaluate_incidents
+      type: classify.cel
+      options:
+        bindings:
+          short: phase.aggregate_short_window.metrics
+          baseline: phase.aggregate_baseline_window.metrics
+        rules:
+          - name: credential_stuffing_cluster
+            when: |
+              short["correlated_auth_failures"].value >= 100 &&
+              short["correlated_auth_failures"].value > 3 * max(1, baseline["auth_failure_baseline"].value)
+            emit:
+              channel: grpcs://soc.escalations/CreateIncident
+              metadata:
+                severity: "HIGH"
+                playbook: "PB-CREDENTIAL-STUFFING"
+              payload:
+                entity_id: short["correlated_auth_failures"].labels["entity_id"]
+                burst_failures: short["correlated_auth_failures"].value
+                baseline_failures: baseline["auth_failure_baseline"].value
+                window_started_ns: window_start_ns
+                window_ended_ns: window_end_ns
+          - name: host_compromise_candidate
+            when: |
+              short["malware_alert_burst"].value >= 10 &&
+              short["malware_alert_burst"].labels["host_id"] == baseline["malware_alert_baseline"].labels["host_id"] &&
+              short["lateral_movement_signals"].labels["host_id"] == short["malware_alert_burst"].labels["host_id"] &&
+              short["lateral_movement_signals"].value >= 3
+            emit:
+              channel: kafkas://soc.alerts
+              schema_key: host_compromise_v1
+              payload:
+                host_id: short["malware_alert_burst"].labels["host_id"]
+                high_severity_alerts: short["malware_alert_burst"].value
+                baseline_alert_rate: baseline["malware_alert_baseline"].value
+                lateral_indicators: short["lateral_movement_signals"].value
+                correlation_id: payload.envelope_id
+
+    - name: publish_state
+      type: sink.checkpoint
+      options:
+        full_interval: 2m
+        incremental_interval: 40s
+        include:
+          - aggregate_short_window
+          - aggregate_baseline_window

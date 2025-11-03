@@ -1,0 +1,103 @@
+bundle:
+  name: iot_fleet_monitoring
+  def_version: 1
+  lane_domains:
+    device_id: { max_per_partition: 64 }
+    gateway_id:{ max_per_partition: 32 }
+    zone:      { max_per_partition: 16 }
+# Partition on gateway or tenant scopes so each partition sees a bounded number of devices/zones.
+workflow:
+  name: iot_fleet_monitoring
+  phases:
+    - name: ingest_iot_events
+      type: source.kafka
+      options:
+        connector: sensors_kafka
+        decode: schema_registry
+        enrich_headers: true
+
+    - name: aggregate_fast_metrics
+      type: aggregate.promql
+      options:
+        window: 30s
+        queries:
+          device_temp_peak:
+            expression: max by (device_id)(
+              max_over_time(
+                device_temperature_c{state="ONLINE"}[30s]
+              )
+            )
+          gateway_latency_p95:
+            expression: quantile_over_time(
+              0.95,
+              network_latency_seconds{link_state="UP"}[30s]
+            )
+          auth_fail_short:
+            expression: sum by (gateway_id)(
+              increase(
+                device_auth_failures_total{result="DENIED"}[30s]
+              )
+            )
+
+    - name: aggregate_baseline_metrics
+      type: aggregate.promql
+      options:
+        window: 15m
+        queries:
+          device_temp_baseline:
+            expression: avg by (zone)(
+              avg_over_time(
+                device_temperature_c{state="ONLINE"}[15m]
+              )
+            )
+          auth_fail_baseline:
+            expression: avg by (gateway_id)(
+              avg_over_time(
+                device_auth_failures_total{result="DENIED"}[15m]
+              )
+            )
+
+    - name: evaluate_policies
+      type: classify.cel
+      options:
+        bindings:
+          fast: phase.aggregate_fast_metrics.metrics
+          baseline: phase.aggregate_baseline_metrics.metrics
+        rules:
+          - name: overheating_device
+            when: |
+              baseline["device_temp_baseline"].labels["zone"] == payload.location.zone &&
+              fast["device_temp_peak"].value > baseline["device_temp_baseline"].value + 5 &&
+              payload.device_tags["safetyCritical"] == true
+            emit:
+              channel: kafkas://iot.alerts
+              schema_key: device_overheat_v1
+              payload:
+                device_id: payload.device_id
+                zone: payload.location.zone
+                temp_peak_c: fast["device_temp_peak"].value
+                temp_baseline_c: baseline["device_temp_baseline"].value
+                observed_at_ns: watermark_ns
+          - name: authentication_threat
+            when: |
+              fast["auth_fail_short"].value >= 20 &&
+              fast["auth_fail_short"].labels["gateway_id"] == baseline["auth_fail_baseline"].labels["gateway_id"] &&
+              fast["auth_fail_short"].value > 1.5 * baseline["auth_fail_baseline"].value
+            emit:
+              channel: grpcs://security-ops/NotifyThreat
+              metadata:
+                severity: "CRITICAL"
+              payload:
+                gateway_id: fast["auth_fail_short"].labels["gateway_id"]
+                short_window_failures: fast["auth_fail_short"].value
+                baseline_failures: baseline["auth_fail_baseline"].value
+                threat_type: "UNUSUAL_AUTH_FAILURE_RATE"
+
+    - name: publish_state
+      type: sink.checkpoint
+      options:
+        full_interval: 30s
+        incremental_interval: 10s
+        include:
+          - aggregate_fast_metrics
+          - aggregate_baseline_metrics

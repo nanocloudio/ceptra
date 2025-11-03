@@ -1,0 +1,105 @@
+bundle:
+  name: ecommerce_supply_chain
+  def_version: 1
+  lane_domains:
+    facility_id: { max_per_partition: 48 }
+    carrier_id:  { max_per_partition: 24 }
+# Facility and carrier dimensions must be sharded across partitions so each residual domain stays within the lane budget.
+workflow:
+  name: ecommerce_supply_chain
+  phases:
+    - name: ingest_logistics_events
+      type: source.kafka
+      options:
+        connector: logistics_events_kafka
+        decode: schema_registry
+        enrich_headers: true
+
+    - name: aggregate_short_term_flow
+      type: aggregate.promql
+      options:
+        window: 10m
+        queries:
+          outbound_orders_rate:
+            expression: rate(
+              warehouse_orders_processed_total[10m]
+            )
+          outbound_orders_rate_by_facility:
+            expression: sum by (facility_id)(
+              rate(
+                warehouse_orders_processed_total[10m]
+              )
+            )
+          delayed_departures:
+            expression: sum by (facility_id)(
+              increase(
+                shipment_delay_events_total{reason="MISSED_DEPARTURE"}[10m]
+              )
+            )
+          carrier_exception_spike:
+            expression: sum by (carrier_id)(
+              increase(
+                carrier_exception_events_total{severity=~"MAJOR|CRITICAL"}[10m]
+              )
+            )
+
+    - name: aggregate_operational_baseline
+      type: aggregate.promql
+      options:
+        window: 6h
+        queries:
+          outbound_orders_baseline:
+            expression: avg by (facility_id)(
+              avg_over_time(
+                warehouse_orders_processed_total[6h]
+              )
+            )
+          carrier_exception_baseline:
+            expression: avg by (carrier_id)(
+              avg_over_time(
+                carrier_exception_events_total{severity=~"MAJOR|CRITICAL"}[6h]
+              )
+            )
+
+    - name: evaluate_supply_risks
+      type: classify.cel
+      options:
+        bindings:
+          short: phase.aggregate_short_term_flow.metrics
+          baseline: phase.aggregate_operational_baseline.metrics
+        rules:
+          - name: fulfillment_sla_slip
+            when: |
+              short["outbound_orders_rate_by_facility"].labels["facility_id"] == baseline["outbound_orders_baseline"].labels["facility_id"] &&
+              short["outbound_orders_rate_by_facility"].value < 0.8 * max(1, baseline["outbound_orders_baseline"].value) &&
+              payload.facility_tags["priority"] == "HIGH"
+            emit:
+              channel: kafkas://ops.sla_alerts
+              schema_key: fulfillment_sla_slip_v1
+              payload:
+                facility_id: short["outbound_orders_rate_by_facility"].labels["facility_id"]
+                current_rate: short["outbound_orders_rate_by_facility"].value
+                baseline_rate: baseline["outbound_orders_baseline"].value
+                window_started_ns: window_start_ns
+          - name: carrier_disruption
+            when: |
+              short["carrier_exception_spike"].value >= 5 &&
+              short["carrier_exception_spike"].value > 2 * max(1, baseline["carrier_exception_baseline"].value)
+            emit:
+              channel: grpcs://supply-chain/TriggerRemediation
+              metadata:
+                severity: "MAJOR"
+              payload:
+                carrier_id: short["carrier_exception_spike"].labels["carrier_id"]
+                exception_count: short["carrier_exception_spike"].value
+                baseline_count: baseline["carrier_exception_baseline"].value
+                impacted_orders: payload.metrics["orders_in_transit"]
+
+    - name: archive_state
+      type: sink.checkpoint
+      options:
+        full_interval: 15m
+        incremental_interval: 5m
+        include:
+          - aggregate_short_term_flow
+          - aggregate_operational_baseline

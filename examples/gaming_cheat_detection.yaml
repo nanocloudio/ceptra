@@ -1,0 +1,107 @@
+bundle:
+  name: gaming_liveops_cheat_detection
+  def_version: 1
+  lane_domains:
+    player_id: { max_per_partition: 32 }
+# Partition on player_id (or a key containing it) so per-partition lane count stays ≤32.
+workflow:
+  name: gaming_liveops_cheat_detection
+  phases:
+    - name: ingest_game_events
+      type: source.kafka
+      options:
+        connector: game_telemetry_kafka
+        decode: schema_registry
+        enrich_headers: true
+
+    - name: aggregate_fast_signals
+      type: aggregate.promql
+      options:
+        window: 15s
+        queries:
+          anti_cheat_flags:
+            expression: sum by (player_id)(
+              increase(anti_cheat_flags_total{queue="ranked"}[15s])
+            )
+          headshot_ratio_short:
+            expression: avg by (player_id)(
+              avg_over_time(player_headshot_ratio{queue="ranked"}[15s])
+            )
+          movement_anomaly_score:
+            expression: avg by (player_id)(
+              avg_over_time(player_movement_deviation_score{mode="live"}[15s])
+            )
+          matchmaking_latency_p95:
+            expression: quantile_over_time(
+              0.95,
+              matchmaking_latency_seconds{queue="ranked"}[15s]
+            )
+
+    - name: aggregate_behavior_baseline
+      type: aggregate.promql
+      options:
+        window: 30m
+        queries:
+          anti_cheat_flag_baseline:
+            expression: avg by (player_id)(
+              avg_over_time(
+                anti_cheat_flags_total{queue="ranked"}[30m]
+              )
+            )
+          headshot_ratio_baseline:
+            expression: avg by (player_id)(
+              avg_over_time(player_headshot_ratio{queue="ranked"}[30m])
+            )
+          movement_anomaly_baseline:
+            expression: avg by (player_id)(
+              avg_over_time(player_movement_deviation_score{mode="live"}[30m])
+            )
+
+    - name: evaluate_player_risk
+      type: classify.cel
+      options:
+        bindings:
+          fast: phase.aggregate_fast_signals.metrics
+          baseline: phase.aggregate_behavior_baseline.metrics
+        rules:
+          - name: potential_aimbot_user
+            when: |
+              fast["headshot_ratio_short"].labels["player_id"] == baseline["headshot_ratio_baseline"].labels["player_id"] &&
+              fast["anti_cheat_flags"].labels["player_id"] == fast["headshot_ratio_short"].labels["player_id"] &&
+              fast["headshot_ratio_short"].value >= baseline["headshot_ratio_baseline"].value + 0.35 &&
+              fast["anti_cheat_flags"].value >= 2
+            emit:
+              channel: kafkas://liveops.cheat_alerts
+              schema_key: suspected_aimbot_v1
+              payload:
+                player_id: fast["headshot_ratio_short"].labels["player_id"]
+                headshot_ratio: fast["headshot_ratio_short"].value
+                baseline_headshot_ratio: baseline["headshot_ratio_baseline"].value
+                anti_cheat_flags: fast["anti_cheat_flags"].value
+                session_id: payload.session_id
+          - name: speed_hack_candidate
+            when: |
+              fast["movement_anomaly_score"].labels["player_id"] == baseline["movement_anomaly_baseline"].labels["player_id"] &&
+              fast["anti_cheat_flags"].labels["player_id"] == fast["movement_anomaly_score"].labels["player_id"] &&
+              fast["movement_anomaly_score"].value > 1.5 * max(1, baseline["movement_anomaly_baseline"].value) &&
+              fast["anti_cheat_flags"].value >= 1 &&
+              fast["matchmaking_latency_p95"].value < 0.04
+            emit:
+              channel: grpcs://anti-cheat/QueueInvestigation
+              metadata:
+                severity: "CRITICAL"
+              payload:
+                player_id: fast["movement_anomaly_score"].labels["player_id"]
+                anomaly_score: fast["movement_anomaly_score"].value
+                baseline_score: baseline["movement_anomaly_baseline"].value
+                anti_cheat_flags: fast["anti_cheat_flags"].value
+                latency_p95_seconds: fast["matchmaking_latency_p95"].value
+
+    - name: retain_state
+      type: sink.checkpoint
+      options:
+        full_interval: 60s
+        incremental_interval: 20s
+        include:
+          - aggregate_fast_signals
+          - aggregate_behavior_baseline

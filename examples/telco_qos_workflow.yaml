@@ -1,0 +1,100 @@
+bundle:
+  name: telco_qos_guardrails
+  def_version: 1
+  lane_domains:
+    cell_id: { max_per_partition: 48 }
+# Partition by cell cluster (for example region+sector) so each partition observes ≤48 cells and stays within the lane cap.
+workflow:
+  name: telco_qos_guardrails
+  phases:
+    - name: ingest_radio_events
+      type: source.kafka
+      options:
+        connector: ran_metrics_kafka
+        decode: schema_registry
+        enrich_headers: true
+
+    - name: aggregate_cell_health_fast
+      type: aggregate.promql
+      options:
+        window: 30s
+        queries:
+          cell_latency_p95:
+            expression: quantile_over_time(
+              0.95,
+              cell_round_trip_seconds{link_state="UP"}[30s]
+            )
+          cell_jitter_avg:
+            expression: avg by (cell_id)(
+              avg_over_time(
+                cell_jitter_seconds[30s]
+              )
+            )
+          packet_loss_short:
+            expression: avg by (cell_id)(
+              avg_over_time(
+                packet_loss_ratio{direction="downlink"}[30s]
+              )
+            )
+
+    - name: aggregate_cell_health_baseline
+      type: aggregate.promql
+      options:
+        window: 2h
+        queries:
+          cell_latency_baseline:
+            expression: avg by (cell_id)(
+              avg_over_time(
+                cell_round_trip_seconds{link_state="UP"}[2h]
+              )
+            )
+          packet_loss_baseline:
+            expression: avg by (cell_id)(
+              avg_over_time(
+                packet_loss_ratio{direction="downlink"}[2h]
+              )
+            )
+
+    - name: evaluate_qos_degradations
+      type: classify.cel
+      options:
+        bindings:
+          fast: phase.aggregate_cell_health_fast.metrics
+          baseline: phase.aggregate_cell_health_baseline.metrics
+        rules:
+          - name: latency_regression
+            when: |
+              fast["cell_latency_p95"].labels["cell_id"] == baseline["cell_latency_baseline"].labels["cell_id"] &&
+              fast["cell_latency_p95"].value > baseline["cell_latency_baseline"].value + 0.02 &&
+              payload.cell_metadata["tier"] == "urban"
+            emit:
+              channel: kafkas://noc.latency_incidents
+              schema_key: cell_latency_regression_v1
+              payload:
+                cell_id: fast["cell_latency_p95"].labels["cell_id"]
+                latency_p95_seconds: fast["cell_latency_p95"].value
+                baseline_seconds: baseline["cell_latency_baseline"].value
+                sector: payload.cell_metadata["sector"]
+                observed_at_ns: watermark_ns
+          - name: packet_loss_spike
+            when: |
+              fast["packet_loss_short"].value >= 2 * max(0.01, baseline["packet_loss_baseline"].value) &&
+              fast["cell_jitter_avg"].value > 0.005
+            emit:
+              channel: grpcs://noc/TriggerMitigation
+              metadata:
+                severity: "CRITICAL"
+              payload:
+                cell_id: fast["packet_loss_short"].labels["cell_id"]
+                packet_loss_ratio: fast["packet_loss_short"].value
+                jitter_seconds: fast["cell_jitter_avg"].value
+                baseline_loss: baseline["packet_loss_baseline"].value
+
+    - name: persist_state
+      type: sink.checkpoint
+      options:
+        full_interval: 5m
+        incremental_interval: 1m
+        include:
+          - aggregate_cell_health_fast
+          - aggregate_cell_health_baseline
