@@ -1,0 +1,72 @@
+{
+  "title": "CEPtra Runtime Overview",
+  "uid": "ceptra-runtime",
+  "version": 1,
+  "panels": [
+    {
+      "id": 1,
+      "title": "Apply Lag",
+      "description": "Tracks ceptra_apply_lag_ms per partition group.",
+      "targets": [
+        { "expr": "max by (partition_id) (ceptra_apply_lag_ms)" }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Replication Lag",
+      "description": "Replication lag in milliseconds.",
+      "targets": [
+        { "expr": "max by (partition_id) (ceptra_replication_lag_ms)" }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Late Events / Lateness",
+      "description": "CEP-specific lateness window using ceptra_ap_event_lateness_ms.",
+      "targets": [
+        { "expr": "quantile_over_time(0.95, ceptra_ap_event_lateness_ms[5m])" }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "WAL Fsync Latency",
+      "description": "Distribution of ceptra_wal_fsync_latency_ms.",
+      "targets": [
+        { "expr": "quantile_over_time(0.99, ceptra_wal_fsync_latency_ms[5m])" }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Certificate Expiry",
+      "description": "Minimum cert lifetime derived from ceptra_security_cert_expiry_ms.",
+      "targets": [
+        { "expr": "min(ceptra_security_cert_expiry_ms)" }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Durability Fences",
+      "description": "Counts partitions with wal_durability_fence_active > 0.",
+      "targets": [
+        { "expr": "sum(wal_durability_fence_active)" }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Finalized Horizon Stall",
+      "description": "Tracks ceptra_finalized_horizon_stall by partition.",
+      "targets": [
+        { "expr": "sum by (partition_id) (ceptra_finalized_horizon_stall)" }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Readiness Ratio",
+      "description": "ceptra_ready_partitions_ratio + per-partition readiness gauges.",
+      "targets": [
+        { "expr": "ceptra_ready_partitions_ratio" },
+        { "expr": "ceptra_partition_ready" }
+      ]
+    }
+  ]
+}

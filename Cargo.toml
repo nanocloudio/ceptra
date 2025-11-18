@@ -1,0 +1,25 @@
+[package]
+name = "ceptra"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+authors = ["CEPtra Authors <eng@nanocloud.local>"]
+description = "CEPtra control-plane and runtime wiring atop the Clustor consensus core"
+
+[dependencies]
+anyhow = "1.0.95"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = { version = "1.0.145", features = ["preserve_order"] }
+thiserror = "2.0.17"
+clustor = { path = "../clustor", features = ["admin-http", "snapshot-crypto"] }
+crossbeam-queue = "0.3.11"
+sha2 = "0.10.9"
+tokio = { version = "1.40.0", features = ["rt", "time"] }
+
+[dev-dependencies]
+pretty_assertions = "1.4.0"
+tempfile = "3.23.0"
+
+[build-dependencies]
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.145"

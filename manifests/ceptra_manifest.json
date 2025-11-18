@@ -1,0 +1,25 @@
+{
+  "documents": [
+    {
+      "name": "ceptra_specification",
+      "path": "../docs/specification.md",
+      "sha256": "d367a4f8c802b5f64dccc78607da9364461ab91ecd064fb5068d67ef4f4d3641",
+      "clause_tag_coverage": 1.0,
+      "document_type": "spec"
+    },
+    {
+      "name": "clustor_specification",
+      "path": "../../clustor/docs/specification.md",
+      "sha256": "2d418c85d360a1357ff59f5c5a770c64183f0630b33db3d2c34855d6bb0d6016",
+      "clause_tag_coverage": 1.0,
+      "document_type": "spec"
+    },
+    {
+      "name": "ceptra_telemetry_catalog",
+      "path": "../telemetry/catalog.json",
+      "sha256": "97680b096c628a5eb1336b3f856348ecf25032fcd893c55d8c592e729b3adeb0",
+      "document_type": "telemetry"
+    }
+  ],
+  "children": []
+}

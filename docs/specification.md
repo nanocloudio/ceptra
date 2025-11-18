@@ -237,6 +237,7 @@ Deployment: Single-binary, self-arranging Kubernetes StatefulSet
 [Informative] The effective retention window is therefore `dedup_retention_window_s = max(client_retry_window_s, 2 × checkpoint_full_interval)` and is persisted in partition metadata.  
 [Informative] Capacity planning: the control plane enforces `dedup_capacity_per_partition ≥ max(ceil(max_ingest_rate_per_partition × client_retry_window_s), index_distance_for(2 × checkpoint_full_interval))`. Checkpoints record the enforced capacity and the estimator state so replay uses the same bound.  
 [Normative] `dedup_retention_window_s` and its derived `min_retain_index` feed directly into Clustor’s `compute_compaction_floor` routine (§9.1): CEPtra raises the substrate-owned `learner_slack_floor` to `min_retain_index`, waits for the standard SnapshotAuthorization + CompactionAuthAck handshakes, and never issues a standalone truncation command. WAL deletion therefore remains exclusively a Clustor decision even when CEPtra’s dedup horizon is the limiting factor.
+[Informative] CEPtra’s retention planner therefore computes `checkpoint_floor = latest_checkpoint_index` and `dedup_floor = finalized_horizon_index − index_distance_for(dedup_retention_window_s)` and sets `min_retain_index = max(checkpoint_floor, dedup_floor)`. The resulting guard is applied by raising Clustor’s `learner_slack_floor` prior to invoking `CompactionGate::plan`, so the SnapshotAuthorization and CompactionAuthAck ordering remains unchanged even when CEPtra constrains the floor.
 [Normative] To keep the eviction predicate tractable, `checkpoint_full_interval` MUST remain inside the `[15s, 5m]` band already enforced for checkpoint scheduling (§20.3); configurations outside this window are rejected because they would either shrink the dedup horizon excessively or make the `index_distance_for(2 × checkpoint_full_interval)` guard unreasonably large.
 [Operational] When operators shorten `checkpoint_full_interval` (still inside the permitted band) the Control Plane serializes the change through a replicated `CheckpointScheduleUpdate` marker before the new value takes effect. The marker records the updated `checkpoint_full_interval`, `dedup_retention_window_s`, and `min_retain_index`, ensuring every replica recomputes eviction predicates identically and the Clustor compaction floor (per §19) is raised before any truncation observes the smaller horizon.
 [Operational] Whenever the reconciler raises `max_ingest_rate_per_partition`, it seals the current WAL segment with a `DedupCapacityUpdate` marker, applies the new capacity to all replicas atomically, and verifies that the in-memory table is resized before resuming client ACKs. Downward adjustments require operator approval and a quiescent window because they may force eviction; the control plane refuses to shrink capacity while occupancy > 70%.
@@ -603,6 +604,8 @@ WM_e = max(WM_e_prev, WM_e_next)
 - [Informative] `ap_finalized_panes_total`
 - [Informative] `ap_retractions_total`
 
+[Informative] `ap_late_events_total{reason}` emits CEP-specific reason strings (`NON_RETRACTABLE_FINALIZED`, `FUTURE_SKEW`, `PAST_SKEW`, etc.) so dashboards can attribute lateness to the underlying policy or admission check without reprocessing logs.
+
 ---
 
 ## 14  PromQL Definition Surface
@@ -705,6 +708,7 @@ increase(logon_failures_total{realm="corp"}[10m])
    - [Informative] Atomic swap after processing `≤ barrier_index`.  
 5. [Informative] **Canary clients:** may pin `rule_version` during validation.  
 [Informative] Per-partition readiness exposure: The `/readyz` endpoint includes a `partitions` map with readiness for each partition and diagnostic reasons when any remain `NotReady`.  
+[Informative] CEP-specific readiness adds two new reasons that never replace Clustor-owned fields: `checkpoint_age_exceeded` fires when the latest checkpoint age exceeds `2 × checkpoint_full_interval`, instructing operators to unblock serialization or inspect storage, and `watermark_stall` fires when the partition’s watermark lag stays above the configured allowance (default lateness allowance) while WAL replay continues to advance. Both reasons appear under `readyz.partitions{part_id}.reasons` alongside the original Clustor predicates so existing automation can key off the CEP names without learning new response schemas.
 6. [Informative] **Decommission:** after grace window, remove old definitions.
 
 [Informative] During checkpoint recovery or WAL catch-up, each partition uses the same readiness gate; append requests targeting partitions still warming emit `TRANSIENT_WARMUP` until their replay reaches the durable head (§24.6).
@@ -1572,6 +1576,7 @@ SERVICE_DNS=ceptra
 ### 26.8 Observability
 [Informative] Prometheus ServiceMonitor on `/metrics`.  
 [Informative] Grafana dashboards bundled.  
+[Informative] Lateness dashboards alert when `ceptra_ap_late_events_total{reason}` exceeds 1% of throughput or when `ceptra_ap_watermark_ts_ms` stalls relative to ingestion, paging the oncall with the concrete reason label (`checkpoint_age_exceeded`, `watermark_stall`, etc.).  
 [Informative] Logs collected via FluentBit or OTEL sidecar.
 
 ---

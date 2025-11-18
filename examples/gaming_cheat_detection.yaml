@@ -20,22 +20,26 @@ workflow:
         window: 15s
         queries:
           anti_cheat_flags:
-            expression: sum by (player_id)(
-              increase(anti_cheat_flags_total{queue="ranked"}[15s])
-            )
+            expression: |
+              sum by (player_id)(
+                increase(anti_cheat_flags_total{queue="ranked"}[15s])
+              )
           headshot_ratio_short:
-            expression: avg by (player_id)(
-              avg_over_time(player_headshot_ratio{queue="ranked"}[15s])
-            )
+            expression: |
+              avg by (player_id)(
+                avg_over_time(player_headshot_ratio{queue="ranked"}[15s])
+              )
           movement_anomaly_score:
-            expression: avg by (player_id)(
-              avg_over_time(player_movement_deviation_score{mode="live"}[15s])
-            )
+            expression: |
+              avg by (player_id)(
+                avg_over_time(player_movement_deviation_score{mode="live"}[15s])
+              )
           matchmaking_latency_p95:
-            expression: quantile_over_time(
-              0.95,
-              matchmaking_latency_seconds{queue="ranked"}[15s]
-            )
+            expression: |
+              quantile_over_time(
+                0.95,
+                matchmaking_latency_seconds{queue="ranked"}[15s]
+              )
 
     - name: aggregate_behavior_baseline
       type: aggregate.promql
@@ -43,19 +47,22 @@ workflow:
         window: 30m
         queries:
           anti_cheat_flag_baseline:
-            expression: avg by (player_id)(
-              avg_over_time(
-                anti_cheat_flags_total{queue="ranked"}[30m]
+            expression: |
+              avg by (player_id)(
+                avg_over_time(
+                  anti_cheat_flags_total{queue="ranked"}[30m]
+                )
               )
-            )
           headshot_ratio_baseline:
-            expression: avg by (player_id)(
-              avg_over_time(player_headshot_ratio{queue="ranked"}[30m])
-            )
+            expression: |
+              avg by (player_id)(
+                avg_over_time(player_headshot_ratio{queue="ranked"}[30m])
+              )
           movement_anomaly_baseline:
-            expression: avg by (player_id)(
-              avg_over_time(player_movement_deviation_score{mode="live"}[30m])
-            )
+            expression: |
+              avg by (player_id)(
+                avg_over_time(player_movement_deviation_score{mode="live"}[30m])
+              )
 
     - name: evaluate_player_risk
       type: classify.cel
@@ -84,6 +91,7 @@ workflow:
               fast["movement_anomaly_score"].labels["player_id"] == baseline["movement_anomaly_baseline"].labels["player_id"] &&
               fast["anti_cheat_flags"].labels["player_id"] == fast["movement_anomaly_score"].labels["player_id"] &&
               fast["movement_anomaly_score"].value > 1.5 * max(1, baseline["movement_anomaly_baseline"].value) &&
+              fast["matchmaking_latency_p95"].has_value &&
               fast["anti_cheat_flags"].value >= 1 &&
               fast["matchmaking_latency_p95"].value < 0.04
             emit:

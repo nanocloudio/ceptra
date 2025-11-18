@@ -1,0 +1,242 @@
+{
+  "metrics": [
+    {
+      "name": "ceptra_ap_watermark_ts_ms",
+      "unit": "ms",
+      "encoding": "wide_int",
+      "read_only": false
+    },
+    {
+      "name": "ceptra_ap_watermark_ts_seconds",
+      "unit": "seconds",
+      "encoding": "wide_int",
+      "read_only": true,
+      "alias_for": "ceptra_ap_watermark_ts_ms"
+    },
+    {
+      "name": "ceptra_ap_event_lateness_ms",
+      "unit": "ms",
+      "encoding": "wide_int",
+      "read_only": false,
+      "documentation": [
+        "docs/observability/alert_policies.md#late-events-surge",
+        "docs/observability/grafana_dashboard.json#panel:late-events"
+      ]
+    },
+    {
+      "name": "ceptra_ap_event_lateness_seconds",
+      "unit": "seconds",
+      "encoding": "wide_int",
+      "read_only": true,
+      "alias_for": "ceptra_ap_event_lateness_ms"
+    },
+    {
+      "name": "ceptra_ap_late_events_total",
+      "unit": "events",
+      "encoding": "wide_int",
+      "read_only": false
+    },
+    {
+      "name": "ceptra_wal_dirty_epoch_age_ms",
+      "unit": "ms",
+      "encoding": "wide_int",
+      "read_only": false
+    },
+    {
+      "name": "ceptra_wal_dirty_epoch_age_seconds",
+      "unit": "seconds",
+      "encoding": "wide_int",
+      "read_only": true,
+      "alias_for": "ceptra_wal_dirty_epoch_age_ms"
+    },
+    {
+      "name": "ceptra_wal_fsync_latency_ms",
+      "unit": "ms",
+      "encoding": "wide_int",
+      "read_only": false,
+      "documentation": [
+        "docs/observability/alert_policies.md#wal-fsync-slow",
+        "docs/observability/grafana_dashboard.json#panel:wal-fsync-latency"
+      ]
+    },
+    {
+      "name": "ceptra_wal_fsync_latency_seconds",
+      "unit": "seconds",
+      "encoding": "wide_int",
+      "read_only": true,
+      "alias_for": "ceptra_wal_fsync_latency_ms"
+    },
+    {
+      "name": "ceptra_ap_apply_latency_ms",
+      "unit": "ms",
+      "encoding": "wide_int",
+      "read_only": false
+    },
+    {
+      "name": "ceptra_ap_apply_latency_seconds",
+      "unit": "seconds",
+      "encoding": "wide_int",
+      "read_only": true,
+      "alias_for": "ceptra_ap_apply_latency_ms"
+    },
+    {
+      "name": "ceptra_replication_lag_ms",
+      "unit": "ms",
+      "encoding": "wide_int",
+      "read_only": false,
+      "documentation": [
+        "docs/observability/alert_policies.md#replication-lag-high",
+        "docs/observability/grafana_dashboard.json#panel:replication-lag"
+      ]
+    },
+    {
+      "name": "ceptra_replication_lag_seconds",
+      "unit": "seconds",
+      "encoding": "wide_int",
+      "read_only": true,
+      "alias_for": "ceptra_replication_lag_ms"
+    },
+    {
+      "name": "ceptra_apply_lag_ms",
+      "unit": "ms",
+      "encoding": "wide_int",
+      "read_only": false,
+      "documentation": [
+        "docs/observability/alert_policies.md#apply-lag-high",
+        "docs/observability/grafana_dashboard.json#panel:apply-lag"
+      ]
+    },
+    {
+      "name": "ceptra_apply_lag_seconds",
+      "unit": "seconds",
+      "encoding": "wide_int",
+      "read_only": true,
+      "alias_for": "ceptra_apply_lag_ms"
+    },
+    {
+      "name": "ceptra_cp_reconcile_duration_ms",
+      "unit": "ms",
+      "encoding": "wide_int",
+      "read_only": false
+    },
+    {
+      "name": "ceptra_cp_reconcile_duration_seconds",
+      "unit": "seconds",
+      "encoding": "wide_int",
+      "read_only": true,
+      "alias_for": "ceptra_cp_reconcile_duration_ms"
+    },
+    {
+      "name": "ceptra_security_cert_expiry_ms",
+      "unit": "ms",
+      "encoding": "wide_int",
+      "read_only": false,
+      "documentation": [
+        "docs/observability/alert_policies.md#certificate-expiry",
+        "docs/observability/grafana_dashboard.json#panel:certificate-expiry"
+      ]
+    },
+    {
+      "name": "ceptra_security_cert_expiry_seconds",
+      "unit": "seconds",
+      "encoding": "wide_int",
+      "read_only": true,
+      "alias_for": "ceptra_security_cert_expiry_ms"
+    },
+    {
+      "name": "ceptra_security_kms_latency_ms",
+      "unit": "ms",
+      "encoding": "wide_int",
+      "read_only": false
+    },
+    {
+      "name": "ceptra_security_kms_latency_seconds",
+      "unit": "seconds",
+      "encoding": "wide_int",
+      "read_only": true,
+      "alias_for": "ceptra_security_kms_latency_ms"
+    },
+    {
+      "name": "leader_credit_window_hint_events",
+      "unit": "events",
+      "encoding": "wide_int",
+      "read_only": false
+    },
+    {
+      "name": "leader_credit_window_hint_bytes",
+      "unit": "bytes",
+      "encoding": "wide_int",
+      "read_only": false
+    },
+    {
+      "name": "leader_credit_window_hint_violation_total",
+      "unit": "events",
+      "encoding": "wide_int",
+      "read_only": false
+    },
+    {
+      "name": "queue_depth",
+      "unit": "events",
+      "encoding": "wide_int",
+      "read_only": false
+    },
+    {
+      "name": "replication_lag_ms",
+      "unit": "ms",
+      "encoding": "wide_int",
+      "read_only": false
+    },
+    {
+      "name": "apply_lag_ms",
+      "unit": "ms",
+      "encoding": "wide_int",
+      "read_only": false
+    },
+    {
+      "name": "ap_emit_queue_utilization",
+      "unit": "ratio",
+      "encoding": "wide_int",
+      "read_only": false
+    },
+    {
+      "name": "wal_durability_fence_active",
+      "unit": "status",
+      "encoding": "wide_int",
+      "read_only": false,
+      "documentation": [
+        "docs/observability/alert_policies.md#durability-fence-active",
+        "docs/observability/grafana_dashboard.json#panel:durability-fences"
+      ]
+    },
+    {
+      "name": "ceptra_finalized_horizon_stall",
+      "unit": "events",
+      "encoding": "wide_int",
+      "read_only": false,
+      "documentation": [
+        "docs/observability/alert_policies.md#finalized-horizon-stall",
+        "docs/observability/grafana_dashboard.json#panel:finalized-horizon-stall"
+      ]
+    },
+    {
+      "name": "ceptra_partition_ready",
+      "unit": "ratio",
+      "encoding": "wide_int",
+      "read_only": false,
+      "documentation": [
+        "docs/observability/alert_policies.md#readiness-ratio-low",
+        "docs/observability/grafana_dashboard.json#panel:readiness-ratio"
+      ]
+    },
+    {
+      "name": "ceptra_ready_partitions_ratio",
+      "unit": "ratio",
+      "encoding": "wide_int",
+      "read_only": false,
+      "documentation": [
+        "docs/observability/alert_policies.md#readiness-ratio-low",
+        "docs/observability/grafana_dashboard.json#panel:readiness-ratio"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+[package]
+name = "wire_lint"
+version = "0.1.0"
+edition = "2021"
+authors = ["CEPtra Authors <eng@nanocloud.local>"]
+description = "Ensures CEPtra wire catalog matches Clustor artifacts"
+
+[dependencies]
+anyhow = "1.0.95"
+ceptra = { path = "../../" }

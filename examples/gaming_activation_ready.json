@@ -1,0 +1,41 @@
+{
+  "now_ms": 1711057200000,
+  "barrier": {
+    "barrier_id": "gaming-activate-v2",
+    "bundle_id": "gaming_liveops_cheat_detection",
+    "partitions": [
+      "partition-a",
+      "partition-b",
+      "partition-c"
+    ],
+    "readiness_threshold": 0.99,
+    "warmup_deadline_ms": 1711058400000,
+    "readiness_window_ms": 60000
+  },
+  "readiness": [
+    {
+      "partition_id": "partition-a",
+      "bundle_id": "gaming_liveops_cheat_detection",
+      "shadow_apply_state": "Ready",
+      "shadow_apply_checkpoint_index": 532,
+      "warmup_ready_ratio": 1.0,
+      "updated_at_ms": 1711057195000
+    },
+    {
+      "partition_id": "partition-b",
+      "bundle_id": "gaming_liveops_cheat_detection",
+      "shadow_apply_state": "Ready",
+      "shadow_apply_checkpoint_index": 534,
+      "warmup_ready_ratio": 0.995,
+      "updated_at_ms": 1711057198000
+    },
+    {
+      "partition_id": "partition-c",
+      "bundle_id": "gaming_liveops_cheat_detection",
+      "shadow_apply_state": "Replaying",
+      "shadow_apply_checkpoint_index": 521,
+      "warmup_ready_ratio": 0.74,
+      "updated_at_ms": 1711057199000
+    }
+  ]
+}

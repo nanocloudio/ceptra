@@ -118,3 +118,30 @@ Raw panes cover the most recent horizon (for example, 24 hours) to support granu
 - High-scale commerce and gaming workloads blending second-by-second metrics with longer baselines for fraud or fairness detection.
 
 CEPtra lets teams replace brittle chains of streaming jobs and warehouses with a single, deterministic engine that is tailored for both rapid decisions and auditable history.
+
+## Governance and Spec Sync
+
+Changes that touch the specification or telemetry catalog must keep the Clustor
+manifest chain in lockstep. Use the GNU Make targets below:
+
+- `make spec-lint` builds `../clustor/target/release/spec_lint` if needed and
+  lints the entire manifest graph (Clustor + CEPtra). After the upstream tool
+  succeeds, it runs CEPtra’s telemetry guard to ensure `_ms`/`_seconds`
+  invariants hold locally.
+- `make spec-sync-write` refreshes `manifests/ceptra_manifest.json` and rewrites
+  `../clustor/manifests/consensus_core_manifest.json` with the new hashes. CI
+  runs `make spec-sync-check`, so CEP-only PRs must include the Clustor changes
+  as well.
+- `make wire-lint` compares `wire/catalog.json` against the upstream
+  `../clustor/artifacts/wire_catalog.json` and fails if they drift.
+
+## SDK Contract & Harness
+
+SDK implementers can follow `docs/sdk_contract.md` for detailed guidance on
+credit windows, jittered retries, and status handling. To validate new SDK
+builds against Clustor’s scripted throttles run the conformance harness:
+
+```
+cargo run --manifest-path tools/sdk_conformance/Cargo.toml -- \
+  --scenarios tools/sdk_conformance/scenarios/throttles.json
+```

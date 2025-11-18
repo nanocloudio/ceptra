@@ -1,0 +1,70 @@
+groups:
+  - name: ceptra-core
+    rules:
+      - alert: CeptraApplyLagHigh
+        expr: avg_over_time(ceptra_apply_lag_ms[5m]) > 200
+        for: 2m
+        labels:
+          severity: warning
+          channel: streaming
+        annotations:
+          summary: "Apply lag exceeded 200 ms"
+          runbook: "docs/observability/alert_policies.md#apply-lag-high"
+
+      - alert: CeptraReplicationLagHigh
+        expr: avg_over_time(ceptra_replication_lag_ms[5m]) > 250
+        for: 2m
+        labels:
+          severity: warning
+          channel: streaming
+        annotations:
+          summary: "Replication lag exceeded 250 ms"
+          runbook: "docs/observability/alert_policies.md#replication-lag-high"
+
+      - alert: CeptraLateEventsSurge
+        expr: quantile_over_time(0.95, ceptra_ap_event_lateness_ms[5m]) > 5000
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Event lateness exceeded 5 seconds (p95)"
+          runbook: "docs/observability/alert_policies.md#late-events-surge"
+
+      - alert: CeptraFsyncSlow
+        expr: quantile_over_time(0.99, ceptra_wal_fsync_latency_ms[5m]) > 10
+        for: 5m
+        labels:
+          severity: critical
+          channel: storage
+        annotations:
+          summary: "WAL fsync latency exceeded 10 ms (p99)"
+          runbook: "docs/observability/alert_policies.md#wal-fsync-slow"
+
+      - alert: CeptraCertificateExpiring
+        expr: ceptra_security_cert_expiry_ms < 259200000
+        for: 15m
+        labels:
+          severity: warning
+          channel: security
+        annotations:
+          summary: "Node certificate expiring within 3 days"
+          runbook: "docs/observability/alert_policies.md#certificate-expiry"
+
+      - alert: CeptraDurabilityFenceActive
+        expr: sum(wal_durability_fence_active) > 0
+        for: 30s
+        labels:
+          severity: critical
+          channel: storage
+        annotations:
+          summary: "Durability fence active for at least one partition"
+          runbook: "docs/observability/alert_policies.md#durability-fence-active"
+
+      - alert: CeptraFinalizedHorizonStall
+        expr: sum(ceptra_finalized_horizon_stall) > 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Finalized horizon stalled for ≥5 minutes"
+          runbook: "docs/observability/alert_policies.md#finalized-horizon-stall"

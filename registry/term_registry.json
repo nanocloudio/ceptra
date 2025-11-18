@@ -1,0 +1,59 @@
+{
+  "terms": [
+    {
+      "term_id": "TERM-0001",
+      "canonical": "Strict",
+      "description": "Means per-append `fdatasync` with no batching."
+    },
+    {
+      "term_id": "TERM-0002",
+      "canonical": "Group-Fsync",
+      "description": "Batching mode guarded by `DurabilityTransition`."
+    },
+    {
+      "term_id": "TERM-0003",
+      "canonical": "DurabilityRecord",
+      "description": "Always refers to `{term,index,segment_seq,io_writer_mode}` record in `wal/durability.log`."
+    },
+    {
+      "term_id": "TERM-0004",
+      "canonical": "FollowerReadSnapshot",
+      "description": "Snapshot-style, never linearizable."
+    },
+    {
+      "term_id": "TERM-0005",
+      "canonical": "LeaseEnable",
+      "description": "ControlPlaneRaft object that authorizes lease reads once `lease_gap_max > 0` and ControlPlaneRaft durability proofs are Fresh (§3.3)."
+    },
+    {
+      "term_id": "TERM-0006",
+      "canonical": "SnapshotDeltaEnable",
+      "description": "ControlPlaneRaft capability that allows delta snapshots after follower readiness and cache freshness checks (§8, §11)."
+    },
+    {
+      "term_id": "TERM-0007",
+      "canonical": "ControlPlaneRaft",
+      "description": "Dedicated Raft cluster that stores durable metadata (placements, durability proofs, feature gates, DR fences)."
+    },
+    {
+      "term_id": "TERM-0008",
+      "canonical": "ConsistencyProfile",
+      "description": "The consistency-prioritized runtime profile: strict durability by default; linearizable reads via ReadIndex/leases when gated."
+    },
+    {
+      "term_id": "TERM-1000",
+      "canonical": "ActiveProcessor",
+      "description": "Partition-resident AP that evaluates rules and emits outputs"
+    },
+    {
+      "term_id": "TERM-1001",
+      "canonical": "LaneDomain",
+      "description": "Lane namespace declared in CEPtra control plane"
+    },
+    {
+      "term_id": "TERM-1002",
+      "canonical": "DurabilityFence",
+      "description": "CEP-local label for Clustor durability incidents"
+    }
+  ]
+}

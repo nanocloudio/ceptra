@@ -1,0 +1,12 @@
+[package]
+name = "spec_sync"
+version = "0.1.0"
+edition = "2021"
+authors = ["CEPtra Authors <eng@nanocloud.local>"]
+description = "Sync helper that keeps Clustor/CEPtra manifest hashes aligned"
+
+[dependencies]
+anyhow = "1.0.95"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = { version = "1.0.145", features = ["preserve_order"] }
+sha2 = "0.10.9"

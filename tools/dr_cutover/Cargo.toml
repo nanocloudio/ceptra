@@ -1,0 +1,12 @@
+[package]
+name = "dr_cutover"
+version = "0.1.0"
+edition = "2021"
+description = "Executes CEPtra disaster recovery plans"
+authors = ["CEPtra Authors <eng@nanocloud.local>"]
+
+[dependencies]
+anyhow = "1.0.95"
+ceptra = { path = "../.." }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.145"

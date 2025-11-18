@@ -1,0 +1,63 @@
+[
+  {
+    "name": "transient_backpressure_recovers",
+    "event_id": "evt-transient",
+    "partition_key": "lane-a",
+    "payload": "payload-A",
+    "responses": [
+      {
+        "status": "TransientBackpressure",
+        "credit_hint": "Hold",
+        "cep_credit_hint": {
+          "client_window_size": 32,
+          "retry_backoff_ms": 60
+        },
+        "cep_status_reason": "LANE_OVERFLOW"
+      },
+      {
+        "status": "Healthy",
+        "credit_hint": "Recover",
+        "cep_credit_hint": {
+          "client_window_size": 64,
+          "retry_backoff_ms": 0
+        }
+      }
+    ],
+    "expect": {
+      "attempts": 2,
+      "success": true,
+      "final_status": "Healthy",
+      "recorded_credit_hints": ["Recover", "Hold"],
+      "recorded_client_windows": [null, 32],
+      "metrics": {
+        "client_window_size_ms": 64,
+        "reject_overload_total_ms": 1,
+        "append_retry_total_ms": 1
+      }
+    }
+  },
+  {
+    "name": "permanent_rejection",
+    "event_id": "evt-permanent",
+    "partition_key": "lane-b",
+    "payload": "payload-B",
+    "responses": [
+      {
+        "status": "PermanentDurability",
+        "credit_hint": "Shed",
+        "cep_credit_hint": {
+          "client_window_size": 8,
+          "retry_backoff_ms": 0
+        },
+        "cep_status_reason": "PERMANENT_DURABILITY"
+      }
+    ],
+    "expect": {
+      "attempts": 1,
+      "success": false,
+      "error_reason": "PERMANENT_DURABILITY",
+      "recorded_credit_hints": ["Recover"],
+      "recorded_client_windows": [null]
+    }
+  }
+]

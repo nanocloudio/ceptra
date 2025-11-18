@@ -21,27 +21,31 @@ workflow:
         window: 10m
         queries:
           outbound_orders_rate:
-            expression: rate(
-              warehouse_orders_processed_total[10m]
-            )
-          outbound_orders_rate_by_facility:
-            expression: sum by (facility_id)(
+            expression: |
               rate(
                 warehouse_orders_processed_total[10m]
               )
-            )
+          outbound_orders_rate_by_facility:
+            expression: |
+              sum by (facility_id)(
+                rate(
+                  warehouse_orders_processed_total[10m]
+                )
+              )
           delayed_departures:
-            expression: sum by (facility_id)(
-              increase(
-                shipment_delay_events_total{reason="MISSED_DEPARTURE"}[10m]
+            expression: |
+              sum by (facility_id)(
+                increase(
+                  shipment_delay_events_total{reason="MISSED_DEPARTURE"}[10m]
+                )
               )
-            )
           carrier_exception_spike:
-            expression: sum by (carrier_id)(
-              increase(
-                carrier_exception_events_total{severity=~"MAJOR|CRITICAL"}[10m]
+            expression: |
+              sum by (carrier_id)(
+                increase(
+                  carrier_exception_events_total{severity=~"MAJOR|CRITICAL"}[10m]
+                )
               )
-            )
 
     - name: aggregate_operational_baseline
       type: aggregate.promql
@@ -49,17 +53,19 @@ workflow:
         window: 6h
         queries:
           outbound_orders_baseline:
-            expression: avg by (facility_id)(
-              avg_over_time(
-                warehouse_orders_processed_total[6h]
+            expression: |
+              avg by (facility_id)(
+                avg_over_time(
+                  warehouse_orders_processed_total[6h]
+                )
               )
-            )
           carrier_exception_baseline:
-            expression: avg by (carrier_id)(
-              avg_over_time(
-                carrier_exception_events_total{severity=~"MAJOR|CRITICAL"}[6h]
+            expression: |
+              avg by (carrier_id)(
+                avg_over_time(
+                  carrier_exception_events_total{severity=~"MAJOR|CRITICAL"}[6h]
+                )
               )
-            )
 
     - name: evaluate_supply_risks
       type: classify.cel

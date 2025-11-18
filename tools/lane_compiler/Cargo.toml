@@ -1,0 +1,10 @@
+[package]
+name = "lane_compiler"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.95"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_yaml = "0.9.34"
+ceptra = { path = "../.." }

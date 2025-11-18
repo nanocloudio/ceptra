@@ -1,0 +1,22 @@
+{
+  "terms": [
+    {
+      "symbol": "ACTIVE_PROCESSOR",
+      "canonical": "ActiveProcessor",
+      "term_id": "TERM-1000",
+      "description": "Partition-resident AP that evaluates rules and emits outputs"
+    },
+    {
+      "symbol": "LANE_DOMAIN",
+      "canonical": "LaneDomain",
+      "term_id": "TERM-1001",
+      "description": "Lane namespace declared in CEPtra control plane"
+    },
+    {
+      "symbol": "DURABILITY_FENCE",
+      "canonical": "DurabilityFence",
+      "term_id": "TERM-1002",
+      "description": "CEP-local label for Clustor durability incidents"
+    }
+  ]
+}

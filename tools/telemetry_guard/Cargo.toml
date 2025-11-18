@@ -1,0 +1,11 @@
+[package]
+name = "telemetry_guard"
+version = "0.1.0"
+edition = "2021"
+authors = ["CEPtra Authors <eng@nanocloud.local>"]
+description = "Validates telemetry catalogs for _ms/_seconds contract"
+
+[dependencies]
+anyhow = "1.0.95"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.145"
