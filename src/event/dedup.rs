@@ -1,4 +1,4 @@
-use super::commit_rate::DedupCapacityUpdate;
+use crate::event::commit_rate::DedupCapacityUpdate;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::cmp::Reverse;

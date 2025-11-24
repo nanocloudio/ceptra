@@ -10,3 +10,4 @@ anyhow = "1.0.95"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = { version = "1.0.145", features = ["preserve_order"] }
 sha2 = "0.10.9"
+ceptra = { path = "../.." }

@@ -1,4 +1,4 @@
-use super::commit_rate::CommitRateSnapshot;
+use crate::event::commit_rate::CommitRateSnapshot;
 
 /// Describes the most recent full + incremental checkpoint chain.
 #[derive(Debug, Clone, PartialEq, Eq)]

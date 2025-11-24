@@ -1,4 +1,4 @@
-use super::commit_epoch::MonotonicClock;
+use crate::event::commit_epoch::MonotonicClock;
 use serde::{Deserialize, Serialize};
 use std::cmp;
 use std::collections::HashMap;

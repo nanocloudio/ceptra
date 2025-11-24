@@ -1,6 +1,6 @@
 use clustor::storage::CompactionState;
 
-use crate::event_model::RetentionPlan;
+use crate::event::retention::RetentionPlan;
 
 /// Applies the computed `min_retain_index` to the Clustor compaction state.
 pub fn raise_learner_slack_floor(state: &mut CompactionState, plan: &RetentionPlan) {

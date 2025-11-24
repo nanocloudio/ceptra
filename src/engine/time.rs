@@ -1,8 +1,8 @@
-use super::aggregation::{MetricBinding, MetricSpec, NON_RETRACTABLE_FLAG};
-use super::apply::{CommittedEvent, EventMeasurement};
-use crate::event_model::{
-    FinalizedHorizon, MonotonicClock, SystemMonotonicClock, WatermarkConfig, WatermarkTracker,
-};
+use crate::engine::aggregation::{MetricBinding, MetricSpec, NON_RETRACTABLE_FLAG};
+use crate::engine::apply::{CommittedEvent, EventMeasurement};
+use crate::event::commit_epoch::{MonotonicClock, SystemMonotonicClock};
+use crate::event::finalized::FinalizedHorizon;
+use crate::event::watermark::{WatermarkConfig, WatermarkTracker};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 const DEFAULT_MAX_FUTURE_SKEW_NS: u64 = 5_000_000_000;

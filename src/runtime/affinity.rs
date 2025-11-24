@@ -1,4 +1,6 @@
-use crate::threading::{DeviceQueuePin, PartitionRole, PartitionThreadPins, ThreadPinTarget};
+use crate::runtime::threading::{
+    DeviceQueuePin, PartitionRole, PartitionThreadPins, ThreadPinTarget,
+};
 use thiserror::Error;
 
 /// NVMe or NIC queue specification.

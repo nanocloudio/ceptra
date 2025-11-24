@@ -1,5 +1,5 @@
-use super::commit_rate::CommitRateSnapshot;
-use super::finalized::FinalizedHorizonSnapshot;
+use crate::event::commit_rate::CommitRateSnapshot;
+use crate::event::finalized::FinalizedHorizonSnapshot;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::time::Instant;

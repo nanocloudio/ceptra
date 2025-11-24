@@ -10,9 +10,9 @@ CARGO_TARGETS ?= --all-targets
 
 help:
 	@echo "ceptra make targets"
-	@echo "  make build          # debug build ($(CARGO_FEATURES))"
-	@echo "  make build-release  # optimized build ($(CARGO_FEATURES))"
-	@echo "  make test           # full test suite (--all) $(CARGO_FEATURES)"
+	@echo "  make build          # debug build of ceptra binary + lib ($(CARGO_FEATURES))"
+	@echo "  make build-release  # optimized build of ceptra binary + lib ($(CARGO_FEATURES))"
+	@echo "  make test           # full test suite (--all) $(CARGO_FEATURES) (tests/ only)"
 	@echo "  make check          # cargo check $(CARGO_TARGETS) $(CARGO_FEATURES)"
 	@echo "  make fmt/fmt-check  # rustfmt (check mode available)"
 	@echo "  make clippy|lint    # clippy with warnings as errors"

@@ -1,4 +1,4 @@
-use crate::lanes::{
+use crate::runtime::lanes::{
     promql_group_labels, validate_lane_domains, LaneDomainMap, LaneValidationError,
     LaneValidationReport, MetricGrouping,
 };

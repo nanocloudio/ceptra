@@ -1,5 +1,5 @@
-use crate::readiness::CepReadyzReport;
-use crate::telemetry::{ensure_ms_only_metrics, TelemetryError};
+use crate::observability::readiness::CepReadyzReport;
+use crate::observability::telemetry::{ensure_ms_only_metrics, TelemetryError};
 use serde::Serialize;
 use std::collections::BTreeMap;
 use thiserror::Error;

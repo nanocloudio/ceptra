@@ -6,12 +6,13 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use ceptra::{
-    threading::{
+    runtime::threading::CheckpointCommand,
+    runtime::threading::{
         ApplyCommand, DeviceQueuePin, IoCommand, PartitionRole, PartitionThreadConfig,
         PartitionThreadLayoutBuilder, PartitionThreadPins, RoleActivity, RoleContext, RoleExecutor,
         TelemetryCommand, ThreadPinTarget, WalCommand,
     },
-    CheckpointCommand, PartitionThreadLayout,
+    PartitionThreadLayout,
 };
 
 fn wait_for<F>(timeout: Duration, mut predicate: F)

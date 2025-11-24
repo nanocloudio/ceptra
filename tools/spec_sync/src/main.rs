@@ -1,6 +1,6 @@
 use anyhow::{anyhow, bail, Context, Result};
+use ceptra::manifests::{ensure_file, sha256_bytes, sha256_file};
 use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -117,14 +117,6 @@ fn repo_root() -> Result<PathBuf> {
             path.canonicalize()
                 .context("failed to canonicalize repository root")
         })
-}
-
-fn ensure_file(path: &Path) -> Result<()> {
-    if path.exists() {
-        Ok(())
-    } else {
-        bail!("required file missing: {}", path.display())
-    }
 }
 
 fn read_manifest(path: &Path) -> Result<ManifestFile> {
@@ -267,17 +259,6 @@ fn sync_wire_catalog(repo_root: &Path, clustor_root: &Path, mode: Mode) -> Resul
         }
     }
     Ok(())
-}
-
-fn sha256_file(path: &Path) -> Result<String> {
-    let bytes = fs::read(path)?;
-    Ok(sha256_bytes(&bytes))
-}
-
-fn sha256_bytes(bytes: &[u8]) -> String {
-    let mut hasher = Sha256::new();
-    hasher.update(bytes);
-    format!("{:x}", hasher.finalize())
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]

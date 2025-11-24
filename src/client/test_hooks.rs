@@ -1,4 +1,8 @@
-use crate::threading::PartitionRole;
+//! Public test harness hooks used by integration tests and CI utilities.
+//! These remain in the library surface so external harnesses and tools can
+//! coordinate deterministic fault injection without duplicating definitions.
+
+use crate::runtime::threading::PartitionRole;
 
 /// Deterministic hook used to alter runtime behavior during tests.
 #[derive(Debug, Clone, PartialEq, Eq)]

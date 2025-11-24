@@ -1,4 +1,4 @@
-use super::commit_epoch::WalEntry;
+use crate::event::commit_epoch::WalEntry;
 use serde::{Deserialize, Serialize};
 
 const DEFAULT_ALPHA: f64 = 0.2;

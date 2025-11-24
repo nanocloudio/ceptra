@@ -1,5 +1,5 @@
-use crate::partition::ApAssignment;
 use crate::readiness::ReadyzReasons;
+use crate::runtime::partition::ApAssignment;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeSet, HashMap};
 use thiserror::Error;

@@ -1,6 +1,7 @@
 use ceptra::{
-    ApAssignment, DisasterRecoveryPlan, FailoverTelemetry, FaultToleranceError, PartitionGroupPlan,
-    WalShipment, WarmStandbyDirective, WarmStandbyManager, PERMANENT_EPOCH_REASON,
+    reliability::fault_tolerance::DisasterRecoveryPlan, ApAssignment, FailoverTelemetry,
+    FaultToleranceError, PartitionGroupPlan, WalShipment, WarmStandbyDirective, WarmStandbyManager,
+    PERMANENT_EPOCH_REASON,
 };
 
 fn assignment(

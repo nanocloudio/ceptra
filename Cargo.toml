@@ -6,6 +6,14 @@ license = "Apache-2.0"
 authors = ["CEPtra Authors <eng@nanocloud.local>"]
 description = "CEPtra control-plane and runtime wiring atop the Clustor consensus core"
 
+[lib]
+name = "ceptra"
+path = "src/lib.rs"
+
+[[bin]]
+name = "ceptra"
+path = "src/main.rs"
+
 [dependencies]
 anyhow = "1.0.95"
 serde = { version = "1.0.228", features = ["derive"] }
@@ -15,6 +23,7 @@ clustor = { path = "../clustor", features = ["admin-http", "snapshot-crypto"] }
 crossbeam-queue = "0.3.11"
 sha2 = "0.10.9"
 tokio = { version = "1.40.0", features = ["rt", "time"] }
+hex = "0.4.3"
 
 [dev-dependencies]
 pretty_assertions = "1.4.0"
