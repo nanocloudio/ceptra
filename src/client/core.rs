@@ -50,6 +50,8 @@ pub struct AppendResponse {
     pub credit_hint: CreditHint,
     pub cep_credit_hint: Option<CepCreditHint>,
     pub cep_status_reason: Option<String>,
+    pub term: Option<u64>,
+    pub index: Option<u64>,
 }
 
 /// Configure retry and transport behaviour for the client.
@@ -171,6 +173,8 @@ impl<T: AppendTransport> CepAppendClient<T> {
                 duration_ms,
                 status: response.status,
                 cep_status_reason: response.cep_status_reason.clone(),
+                term: response.term,
+                index: response.index,
             });
             self.telemetry.record_log(AppendLog {
                 event_id: response.event_id.clone(),
@@ -259,6 +263,8 @@ pub struct AppendSpan {
     pub duration_ms: u64,
     pub status: IngestStatusCode,
     pub cep_status_reason: Option<String>,
+    pub term: Option<u64>,
+    pub index: Option<u64>,
 }
 
 /// Structured log emitted for append attempts.

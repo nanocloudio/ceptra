@@ -130,6 +130,7 @@ impl CreditWindowTelemetry {
 }
 
 /// Periodically publishes credit window hints for clients.
+#[derive(Debug, Clone)]
 pub struct CreditWindowHintTimer {
     interval: Duration,
     last_publish: Option<Instant>,

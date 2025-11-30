@@ -17,6 +17,10 @@ dashboards and alert bindings evolve in lock step with the code they observe.
 | Durability fence active | `wal_durability_fence_active{part_id}` | `> 0` for 30 seconds | Critical | Follow the durability fence runbook: inspect WAL reasons and reconcile storage pressure. |
 | Finalized horizon stall | `ceptra_finalized_horizon_stall{part_id}` | `> 0` for 5 minutes | Critical | Check `/readyz` reasons, reduce lateness allowances, or disable problematic bundles. |
 | Readiness ratio low | `ceptra_ready_partitions_ratio`, `ceptra_partition_ready{part_id}` | `< 0.99` for 5 minutes | Warning | Drain pods that fail to warm, verify checkpoint freshness, and confirm that warmup probes have completed. |
+| Placement feed stale | `clustor_feed_staleness_ms{feed="placement"}` | `> 30_000 ms` for 1 minute | Warning | Check control-plane connectivity, TLS materials, and advertised host/ports; `/readyz` now fails when the placement feed is stale. |
+| Raft leader/commit missing | `ceptra_partition_leader_known`, `ceptra_partition_committed_index` vs. `ceptra_partition_last_index{kind="log"}` | Leader known == 0 or commit < log for 1 minute | Critical | Inspect `/readyz` reasons, confirm peer reachability, and tune `CEPTRA_RAFT_CLIENT_*` backoff knobs if connectivity is flaky. |
+
+Readiness now reflects Raft health and feed freshness; expect `/readyz` to surface `placement_feed_stale` or leader/commit reasons alongside the per-partition readiness metrics.
 
 The dashboards surface the same metrics with curated panels so operators can
 spot regressions before alerts fire. Each metric definition inside

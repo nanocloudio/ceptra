@@ -5,6 +5,20 @@ recovery drill begins by following the normative spec in
 `../clustor/docs/specification.md`. This document captures the CEPtra-specific 
 sequencing plus references to the shared procedures.
 
+## Clustor-backed prerequisites
+
+1. Keep the sibling `../clustor` checkout present and pinned: the build guard
+   compares `manifests/ceptra_manifest.json` to `../clustor/docs/specification.md`.
+   Run `make spec-sync-check` (or `spec-sync-write`) after bumping either spec to
+   refresh the hash and the upstream `consensus_core_manifest`.
+2. Run CEPtra with the `clustor-net` feature enabled. The deprecated stub runtime
+   now requires `CEPTRA_STUB_RUNTIME=1` and should only be used for dev seeds or
+   smoke tests while Clustor integration tests come online.
+3. Pre-provision TLS identity/trust paths plus storage roots (`CEPTRA_DATA_DIR`,
+   `CEPTRA_WAL_DIR`, `CEPTRA_SNAPSHOT_DIR`). The runtime validates readability
+   and writability at startup; refer to `docs/operational_runbook.md` for port
+   bindings and health checks.
+
 ## Cold start
 
 1. Provision storage + certificates per the Clustor cold-start checklist.

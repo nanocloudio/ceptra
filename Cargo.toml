@@ -6,6 +6,12 @@ license = "Apache-2.0"
 authors = ["CEPtra Authors <eng@nanocloud.local>"]
 description = "CEPtra control-plane and runtime wiring atop the Clustor consensus core"
 
+[features]
+default = ["clustor-net"]
+# clustor-net pulls in Clustor networking surfaces; tools/tests that do not need
+# sockets should use --no-default-features or set default-features = false.
+clustor-net = ["clustor/net"]
+
 [lib]
 name = "ceptra"
 path = "src/lib.rs"
@@ -19,16 +25,22 @@ anyhow = "1.0.95"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = { version = "1.0.145", features = ["preserve_order"] }
 thiserror = "2.0.17"
-clustor = { path = "../clustor", features = ["admin-http", "snapshot-crypto"] }
+clustor = { path = "../clustor", default-features = false, features = ["admin-http", "snapshot-crypto"] }
 crossbeam-queue = "0.3.11"
 sha2 = "0.10.9"
 tokio = { version = "1.40.0", features = ["rt", "time"] }
 hex = "0.4.3"
+reqwest = { version = "0.12.9", default-features = false, features = ["blocking", "json", "rustls-tls"] }
+base64 = "0.22.1"
 
 [dev-dependencies]
 pretty_assertions = "1.4.0"
 tempfile = "3.23.0"
+rcgen = "0.13.1"
+rustls = { version = "0.23.35", default-features = false, features = ["std"] }
 
 [build-dependencies]
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.145"
+sha2 = "0.10.9"
+hex = "0.4.3"

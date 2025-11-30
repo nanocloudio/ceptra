@@ -145,3 +145,10 @@ builds against Clustor’s scripted throttles run the conformance harness:
 cargo run --manifest-path tools/sdk_conformance/Cargo.toml -- \
   --scenarios tools/sdk_conformance/scenarios/throttles.json
 ```
+
+## Clustor dependency and modes
+- Check out the sibling `../clustor` repo; the build now fails fast when the manifest hash in `manifests/ceptra_manifest.json` drifts from `../clustor/docs/specification.md`—run `make spec-sync-write` after bumping either spec.
+- Default builds require the `clustor-net` feature and a configured control plane (`CEPTRA_CONTROL_PLANE_URL`) plus TLS identity/trust; the stub runtime has been removed.
+- Embedded dev runs can reuse `tools/dev_clustor.sh` or `tools/fixtures/embedded.env` (ports 26020/26021, `target/ceptra-clustor` data dir) and the mini-cluster certs from `../clustor/examples/mini-cluster/certs`.
+- All deployments require `CEPTRA_CONTROL_PLANE_URL` and the TLS identity/trust env vars; see `docs/operational_runbook.md` for the full port/cert/storage/health checklist and the Raft-ready placement/feature feed gating.
+- Raft client tuning is configurable via `CEPTRA_RAFT_CLIENT_TIMEOUT_MS`, `CEPTRA_RAFT_CLIENT_RETRY_ATTEMPTS`, and `CEPTRA_RAFT_CLIENT_BACKOFF_MS` (defaults mirror the upstream transport).

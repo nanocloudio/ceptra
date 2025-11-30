@@ -237,6 +237,24 @@
         "docs/observability/alert_policies.md#readiness-ratio-low",
         "docs/observability/grafana_dashboard.json#panel:readiness-ratio"
       ]
+    },
+    {
+      "name": "clustor_feed_staleness_ms",
+      "unit": "ms",
+      "encoding": "wide_int",
+      "read_only": false
+    },
+    {
+      "name": "clustor_feed_latency_ms",
+      "unit": "ms",
+      "encoding": "wide_int",
+      "read_only": false
+    },
+    {
+      "name": "clustor_system_logs_total",
+      "unit": "events",
+      "encoding": "wide_int",
+      "read_only": false
     }
   ]
 }

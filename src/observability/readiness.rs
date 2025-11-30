@@ -10,6 +10,7 @@ pub const REPLICATION_LAG_REASON: &str = "replication_lag_exceeded";
 pub const CERTIFICATE_EXPIRY_REASON: &str = "certificate_expiring";
 pub const WARMUP_PENDING_REASON: &str = "warmup_pending";
 pub const BACKUP_LAG_REASON: &str = "backup_lag_exceeded";
+pub const PLACEMENT_STALE_REASON: &str = "placement_feed_stale";
 
 /// Tracks CEP-specific `/readyz` reasons derived from time semantics.
 #[derive(Debug, Default, Clone)]
@@ -64,6 +65,19 @@ impl ReadyzReasons {
         let text = reason.into();
         if !text.trim().is_empty() {
             self.reasons.insert(text);
+        }
+    }
+
+    /// Adds or removes a global readiness reason based on the flag provided.
+    pub fn set_reason(&mut self, reason: impl Into<String>, enabled: bool) {
+        let text = reason.into();
+        if text.trim().is_empty() {
+            return;
+        }
+        if enabled {
+            self.reasons.insert(text);
+        } else {
+            self.reasons.remove(text.as_str());
         }
     }
 
@@ -160,6 +174,19 @@ impl ReadyGate {
         let text = reason.into();
         if !text.trim().is_empty() {
             self.reasons.insert(text);
+        }
+    }
+
+    /// Adds or removes a global readiness reason.
+    pub fn set_reason(&mut self, reason: impl Into<String>, enabled: bool) {
+        let text = reason.into();
+        if text.trim().is_empty() {
+            return;
+        }
+        if enabled {
+            self.reasons.insert(text);
+        } else {
+            self.reasons.remove(text.as_str());
         }
     }
 
@@ -331,6 +358,23 @@ impl ReadyMetrics {
     /// Healthy partition ratio.
     pub fn ready_ratio(&self) -> f64 {
         self.ready_ratio
+    }
+
+    /// Prometheus exposition for CEP readiness.
+    pub fn render_prometheus(&self) -> String {
+        let mut lines = String::new();
+        lines.push_str(&format!(
+            "ceptra_partition_ready_ratio {}\n",
+            self.ready_ratio
+        ));
+        for metric in &self.partitions {
+            let ready = if metric.ready { 1 } else { 0 };
+            lines.push_str(&format!(
+                "ceptra_partition_ready{{partition_id=\"{}\"}} {}\n",
+                metric.partition_id, ready
+            ));
+        }
+        lines
     }
 }
 

@@ -53,6 +53,8 @@ fn client_retries_with_stable_event_id_and_hint_echo() {
             retry_backoff_ms: 50,
         }),
         cep_status_reason: Some("LANE_OVERFLOW".into()),
+        term: None,
+        index: None,
     };
     let second = AppendResponse {
         event_id: "evt-1".into(),
@@ -63,6 +65,8 @@ fn client_retries_with_stable_event_id_and_hint_echo() {
             retry_backoff_ms: 0,
         }),
         cep_status_reason: None,
+        term: None,
+        index: None,
     };
     let responses = vec![Ok(first), Ok(second)];
     let (transport, state) = mock_transport(responses);
@@ -106,6 +110,8 @@ fn exhausts_retries_and_surfaces_reason() {
         credit_hint: CreditHint::Hold,
         cep_credit_hint: None,
         cep_status_reason: Some("LANE_OVERFLOW".into()),
+        term: None,
+        index: None,
     };
     let responses = vec![Ok(response.clone()), Ok(response)];
     let (transport, _) = mock_transport(responses);

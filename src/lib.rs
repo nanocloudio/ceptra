@@ -5,11 +5,13 @@ pub mod client {
     pub mod core;
     pub mod runtime;
     pub mod test_hooks;
+    pub mod transport;
 
     pub use ack::*;
     pub use core::*;
     pub use runtime::*;
     pub use test_hooks::*;
+    pub use transport::*;
 }
 
 pub mod config {
@@ -30,11 +32,13 @@ pub mod observability {
     pub mod core;
     pub mod logging;
     pub mod readiness;
+    pub mod readyz;
     pub mod telemetry;
 
     pub use core::*;
     pub use logging::*;
     pub use readiness::*;
+    pub use readyz::*;
     pub use telemetry::*;
 }
 
@@ -89,8 +93,8 @@ pub use clustor as consensus_core;
 pub use client::{
     evaluate, AckDisposition, AckRejection, AckSignals, AppendError, AppendLog, AppendMetrics,
     AppendOptions, AppendRequest, AppendResponse, AppendSpan, AppendTelemetry, AppendTransport,
-    AppendTransportError, CepAppendClient, CepCreditHint, ClientHints, TestHook, TestHookRegistry,
-    CEP_STATUS_REASON, PERMANENT_DURABILITY_REASON,
+    AppendTransportError, CepAppendClient, CepCreditHint, ClientHints, ClustorAppendTransport,
+    TestHook, TestHookRegistry, CEP_STATUS_REASON, PERMANENT_DURABILITY_REASON,
 };
 pub use engine::{
     aggregation::{
@@ -188,15 +192,17 @@ pub mod event {
     pub use watermark::*;
 }
 pub use client::runtime::{RoleMode, RuntimeOptions, TestMode, WarmupEstimate};
+pub use observability::evaluate_readyz;
 pub use observability::{
     ensure_ms_only_metrics, scrape_metric_names, TelemetryCatalog, TelemetryError, TelemetryMetric,
 };
 pub use observability::{
-    CepReadyzPartition, CepReadyzReport, PartitionReadinessInputs, PartitionReadinessPolicy,
-    PartitionReadyMetric, ReadyGate, ReadyMetrics, ReadyzReasons, RolloutAutomation,
-    RolloutDecision, APPLY_LAG_REASON, BACKUP_LAG_REASON, CERTIFICATE_EXPIRY_REASON,
-    CHECKPOINT_AGE_REASON, CHECKPOINT_CHAIN_DEGRADED, PARTITION_THRESHOLD_REASON,
-    REPLICATION_LAG_REASON, WARMUP_PENDING_REASON, WATERMARK_STALL_REASON,
+    CepReadyzPartition, CepReadyzReport, CombinedReadyz, PartitionReadinessInputs,
+    PartitionReadinessPolicy, PartitionReadyMetric, ReadyGate, ReadyMetrics, ReadyzReasons,
+    RolloutAutomation, RolloutDecision, APPLY_LAG_REASON, BACKUP_LAG_REASON,
+    CERTIFICATE_EXPIRY_REASON, CHECKPOINT_AGE_REASON, CHECKPOINT_CHAIN_DEGRADED,
+    PARTITION_THRESHOLD_REASON, REPLICATION_LAG_REASON, WARMUP_PENDING_REASON,
+    WATERMARK_STALL_REASON,
 };
 pub use observability::{
     HealthzStatus, JsonLineLogger, LogFile, LogLevel, LogRotationPolicy, LoggingError,

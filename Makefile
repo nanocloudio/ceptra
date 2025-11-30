@@ -1,4 +1,4 @@
-.PHONY: help fmt fmt-check clippy lint check build build-release test clean spec-lint spec-sync-check spec-sync-write wire-lint
+.PHONY: help fmt fmt-check clippy lint check build build-release test test-integration clean spec-lint spec-sync-check spec-sync-write wire-lint
 
 SHELL := /bin/bash
 .SHELLFLAGS := -euo pipefail -c
@@ -13,6 +13,7 @@ help:
 	@echo "  make build          # debug build of ceptra binary + lib ($(CARGO_FEATURES))"
 	@echo "  make build-release  # optimized build of ceptra binary + lib ($(CARGO_FEATURES))"
 	@echo "  make test           # full test suite (--all) $(CARGO_FEATURES) (tests/ only)"
+	@echo "  make test-integration # runs ignored Clustor integration tests ($(CARGO_FEATURES))"
 	@echo "  make check          # cargo check $(CARGO_TARGETS) $(CARGO_FEATURES)"
 	@echo "  make fmt/fmt-check  # rustfmt (check mode available)"
 	@echo "  make clippy|lint    # clippy with warnings as errors"
@@ -43,6 +44,9 @@ build-release:
 
 test:
 	$(CARGO) test --all $(CARGO_FEATURES)
+
+test-integration:
+	$(CARGO) test --all $(CARGO_FEATURES) -- --ignored --nocapture
 
 clean:
 	$(CARGO) clean
